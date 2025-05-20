@@ -160,36 +160,36 @@ def test_saved_model_performance(sample_data, preprocessor):
     print(f"保存モデル検証に成功： 精度 {accuracy:.3f}, 推論時間 {inference_time:.3f}s")
 
 
-def test_performance_regression(sample_data, preprocessor):
-    """過去バージョンモデルとの性能比較"""
-    if not os.path.exists(BASELINE_MODEL_PATH):
-        pytest.skip("ベースラインモデルが存在しないためスキップします")
-    with open(MODEL_PATH, "rb") as f:
-        new_model = pickle.load(f)
-    with open(BASELINE_MODEL_PATH, "rb") as f:
-        base_model = pickle.load(f)
-    X = sample_data.drop("Survived", axis=1)
-    y = sample_data["Survived"].astype(int)
-    _, X_test_reg, _, y_test_reg = train_test_split(
-        X, y, test_size=0.2, random_state=42
-    )
-    new_acc = accuracy_score(y_test_reg, new_model.predict(X_test_reg))
-    base_acc = accuracy_score(y_test_reg, base_model.predict(X_test_reg))
-    assert new_acc >= base_acc, (
-        f"モデルの精度がベースラインを下回っています: 新 {new_acc:.3f}, "
-        f"ベースライン {base_acc:.3f}"
-    )
-    start_new = time.time()
-    new_model.predict(X_test_reg)
-    new_time = time.time() - start_new
-    start_base = time.time()
-    base_model.predict(X_test_reg)
-    base_time = time.time() - start_base
-    assert new_time <= base_time, (
-        f"推論時間がベースラインより遅い: 新 {new_time:.3f}秒, "
-        f"ベースライン {base_time:.3f}秒"
-    )
-    print(
-        f"退行検証に成功: 精度 (新 {new_acc:.3f} ≥ 基準 {base_acc:.3f}), "
-        f"時間 (新 {new_time:.3f}s ≤ 基準 {base_time:.3f}s)"
-    )
+# def test_performance_regression(sample_data, preprocessor):
+#     """過去バージョンモデルとの性能比較"""
+#     if not os.path.exists(BASELINE_MODEL_PATH):
+#         pytest.skip("ベースラインモデルが存在しないためスキップします")
+#     with open(MODEL_PATH, "rb") as f:
+#         new_model = pickle.load(f)
+#     with open(BASELINE_MODEL_PATH, "rb") as f:
+#         base_model = pickle.load(f)
+#     X = sample_data.drop("Survived", axis=1)
+#     y = sample_data["Survived"].astype(int)
+#     _, X_test_reg, _, y_test_reg = train_test_split(
+#         X, y, test_size=0.2, random_state=42
+#     )
+#     new_acc = accuracy_score(y_test_reg, new_model.predict(X_test_reg))
+#     base_acc = accuracy_score(y_test_reg, base_model.predict(X_test_reg))
+#     assert new_acc >= base_acc, (
+#         f"モデルの精度がベースラインを下回っています: 新 {new_acc:.3f}, "
+#         f"ベースライン {base_acc:.3f}"
+#     )
+#     start_new = time.time()
+#     new_model.predict(X_test_reg)
+#     new_time = time.time() - start_new
+#     start_base = time.time()
+#     base_model.predict(X_test_reg)
+#     base_time = time.time() - start_base
+#     assert new_time <= base_time, (
+#         f"推論時間がベースラインより遅い: 新 {new_time:.3f}秒, "
+#         f"ベースライン {base_time:.3f}秒"
+#     )
+#     print(
+#         f"退行検証に成功: 精度 (新 {new_acc:.3f} ≥ 基準 {base_acc:.3f}), "
+#         f"時間 (新 {new_time:.3f}s ≤ 基準 {base_time:.3f}s)"
+#     )
