@@ -150,7 +150,9 @@ def test_saved_model_performance(sample_data, preprocessor):
     inference_time = time.time() - start
     accuracy = accuracy_score(y_test_split, y_pred)
     assert accuracy >= 0.75, f"保存モデルの精度が低すぎます: {accuracy}"
-    assert inference_time < 1.0, f"保存モデルの推論時間が長すぎます: {inference_time:.3f}秒"
+    assert (
+        inference_time < 1.0
+    ), f"保存モデルの推論時間が長すぎます: {inference_time:.3f}秒"
 
 
 def test_performance_regression(sample_data, preprocessor):
