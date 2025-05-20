@@ -157,7 +157,7 @@ def test_saved_model_performance(sample_data, preprocessor):
     assert (
         inference_time < 1.0
     ), f"保存モデルの推論時間が長すぎます: {inference_time:.3f}秒"
-    print(f"保存モデル検証に成功: 精度 {accuracy:.3f}, 推論時間 {inference_time:.3f}s")
+    print(f"保存モデル検証に成功： 精度 {accuracy:.3f}, 推論時間 {inference_time:.3f}s")
 
 
 def test_performance_regression(sample_data, preprocessor):
