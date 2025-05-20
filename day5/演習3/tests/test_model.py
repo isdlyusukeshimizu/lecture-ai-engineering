@@ -1,22 +1,22 @@
 import os
-import pytest
-import pandas as pd
-import numpy as np
 import pickle
 import time
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
-from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
+
+import numpy as np
+import pandas as pd
+import pytest
 from sklearn.compose import ColumnTransformer
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.impute import SimpleImputer
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 # テスト用データとモデルパスを定義
 DATA_PATH = os.path.join(os.path.dirname(__file__), "../data/Titanic.csv")
 MODEL_DIR = os.path.join(os.path.dirname(__file__), "../models")
 MODEL_PATH = os.path.join(MODEL_DIR, "titanic_model.pkl")
-# ベースライン（過去バージョン）モデルのパス
 BASELINE_MODEL_PATH = os.path.join(MODEL_DIR, "titanic_model_baseline.pkl")
 
 
@@ -29,7 +29,6 @@ def sample_data():
         titanic = fetch_openml("titanic", version=1, as_frame=True)
         df = titanic.data
         df["Survived"] = titanic.target
-        # 必要なカラムのみ選択
         df = df[
             ["Pclass", "Sex", "Age", "SibSp", "Parch", "Fare", "Embarked", "Survived"]
         ]
@@ -103,11 +102,10 @@ def test_model_accuracy(train_model):
 def test_model_inference_time(train_model):
     """モデルの推論時間を検証"""
     model, X_test, _ = train_model
-    start_time = time.time()
+    start = time.time()
     model.predict(X_test)
-    end_time = time.time()
-    inference_time = end_time - start_time
-    assert inference_time < 1.0, f"推論時間が長すぎます: {inference_time}秒"
+    inference_time = time.time() - start
+    assert inference_time < 1.0, f"推論時間が長すぎます: {inference_time:.3f}秒"
 
 
 def test_model_reproducibility(sample_data, preprocessor):
@@ -144,16 +142,15 @@ def test_saved_model_performance(sample_data, preprocessor):
         model = pickle.load(f)
     X = sample_data.drop("Survived", axis=1)
     y = sample_data["Survived"].astype(int)
-    X_train, X_test_split, y_train, y_test_split = train_test_split(
+    _, X_test_split, _, y_test_split = train_test_split(
         X, y, test_size=0.2, random_state=1
     )
     start = time.time()
     y_pred = model.predict(X_test_split)
-    end = time.time()
-    inference_time = end - start
+    inference_time = time.time() - start
     accuracy = accuracy_score(y_test_split, y_pred)
     assert accuracy >= 0.75, f"保存モデルの精度が低すぎます: {accuracy}"
-    assert inference_time < 1.0, f"保存モデルの推論時間が長すぎます: {inference_time}秒"
+    assert inference_time < 1.0, f"保存モデルの推論時間が長すぎます: {inference_time:.3f}秒"
 
 
 def test_performance_regression(sample_data, preprocessor):
@@ -171,11 +168,17 @@ def test_performance_regression(sample_data, preprocessor):
     )
     new_acc = accuracy_score(y_test_reg, new_model.predict(X_test_reg))
     base_acc = accuracy_score(y_test_reg, base_model.predict(X_test_reg))
-    assert new_acc >= base_acc, f"モデルの精度がベースラインを下回っています: 新: {new_acc}, ベースライン: {base_acc}"
-    new_time_start = time.time()
+    assert new_acc >= base_acc, (
+        f"モデルの精度がベースラインを下回っています: 新 {new_acc:.3f}, "
+        f"ベースライン {base_acc:.3f}"
+    )
+    start_new = time.time()
     new_model.predict(X_test_reg)
-    new_time = time.time() - new_time_start
-    base_time_start = time.time()
+    new_time = time.time() - start_new
+    start_base = time.time()
     base_model.predict(X_test_reg)
-    base_time = time.time() - base_time_start
-    assert new_time <= base_time, f"推論時間がベースラインより遅い: 新: {new_time}秒, ベースライン: {base_time}秒"
+    base_time = time.time() - start_base
+    assert new_time <= base_time, (
+        f"推論時間がベースラインより遅い: 新 {new_time:.3f}秒, "
+        f"ベースライン {base_time:.3f}秒"
+    )
