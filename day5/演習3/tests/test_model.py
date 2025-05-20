@@ -89,6 +89,7 @@ def test_model_exists():
     if not os.path.exists(MODEL_PATH):
         pytest.skip("モデルファイルが存在しないためスキップします")
     assert os.path.exists(MODEL_PATH), "モデルファイルが存在しません"
+    print(f"モデルファイル確認に成功: {MODEL_PATH} が存在します")
 
 
 def test_model_accuracy(train_model):
@@ -96,7 +97,8 @@ def test_model_accuracy(train_model):
     model, X_test, y_test = train_model
     y_pred = model.predict(X_test)
     accuracy = accuracy_score(y_test, y_pred)
-    assert accuracy >= 0.75, f"モデルの精度が低すぎます: {accuracy}"
+    assert accuracy >= 0.75, f"モデルの精度が低すぎます: {accuracy:.3f}"
+    print(f"モデル精度検証に成功: Accuracy = {accuracy:.3f} (閾値 0.75)")
 
 
 def test_model_inference_time(train_model):
@@ -106,6 +108,7 @@ def test_model_inference_time(train_model):
     model.predict(X_test)
     inference_time = time.time() - start
     assert inference_time < 1.0, f"推論時間が長すぎます: {inference_time:.3f}秒"
+    print(f"推論時間検証に成功: {inference_time:.3f}s (< 1.0s)")
 
 
 def test_model_reproducibility(sample_data, preprocessor):
@@ -132,6 +135,7 @@ def test_model_reproducibility(sample_data, preprocessor):
     assert np.array_equal(
         model1.predict(X_test), model2.predict(X_test)
     ), "モデルの予測結果に再現性がありません"
+    print("再現性検証に成功: 複数回の学習で同一予測結果が得られました")
 
 
 def test_saved_model_performance(sample_data, preprocessor):
@@ -149,10 +153,13 @@ def test_saved_model_performance(sample_data, preprocessor):
     y_pred = model.predict(X_test_split)
     inference_time = time.time() - start
     accuracy = accuracy_score(y_test_split, y_pred)
-    assert accuracy >= 0.75, f"保存モデルの精度が低すぎます: {accuracy}"
+    assert accuracy >= 0.75, f"保存モデルの精度が低すぎます: {accuracy:.3f}"
     assert (
         inference_time < 1.0
     ), f"保存モデルの推論時間が長すぎます: {inference_time:.3f}秒"
+    print(
+        f"保存モデル検証に成功: 精度 {accuracy:.3f}, 推論時間 {inference_time:.3f}s"
+    )
 
 
 def test_performance_regression(sample_data, preprocessor):
@@ -183,4 +190,8 @@ def test_performance_regression(sample_data, preprocessor):
     assert new_time <= base_time, (
         f"推論時間がベースラインより遅い: 新 {new_time:.3f}秒, "
         f"ベースライン {base_time:.3f}秒"
+    )
+    print(
+        f"退行検証に成功: 精度 (新 {new_acc:.3f} ≥ 基準 {base_acc:.3f}), "
+        f"時間 (新 {new_time:.3f}s ≤ 基準 {base_time:.3f}s)"
     )
